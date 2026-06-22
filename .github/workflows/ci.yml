@@ -26,7 +26,7 @@ jobs:
       run: pytest test_app.py -v --junitxml=results.xml
 
     - name: Publicar resultados de pruebas
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: resultados-pytest
