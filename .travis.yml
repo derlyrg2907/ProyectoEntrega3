@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - '3.11'
+
+before_install:
+  - pip install --upgrade pip
+
+install:
+  - pip install -r backend/requirements.txt
+
+script:
+  - pytest backend/tests/ -v --junitxml=results.xml
+
+after_success:
+  - echo 'Pruebas exitosas en Travis CI'
+
+notifications:
+  email:
+    on_success: never
+    on_failure: always

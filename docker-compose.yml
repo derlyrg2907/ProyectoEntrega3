@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # ─── Contenedor 1: Base de Datos MySQL ───────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: glowskin_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass_2024
+      MYSQL_DATABASE: belleza_db
+      MYSQL_USER: belleza_user
+      MYSQL_PASSWORD: belleza_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - glowskin_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "belleza_user", "-pbelleza_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Contenedor 2: Backend Flask (API REST) ───────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: glowskin_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_USER: belleza_user
+      DB_PASSWORD: belleza_pass
+      DB_NAME: belleza_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - glowskin_network
+    volumes:
+      - ./backend/app:/app
+
+# ─── Red compartida entre contenedores ──────────────────────────────────────
+networks:
+  glowskin_network:
+    driver: bridge
+
+# ─── Volumen persistente para MySQL ─────────────────────────────────────────
+volumes:
+  db_data:
+    driver: local
